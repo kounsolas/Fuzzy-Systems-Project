@@ -1,7 +1,7 @@
 %% Σενάριο 1
 clc;
 close all;
-clearvars;
+
 
 TL = 0;  
 Ts = 0.01;
@@ -16,4 +16,58 @@ r(t >= 10 & t < 20) = 100;
 r_max = 150;
 normalization = 1/r_max;
 r = timeseries(r,t);
+
+figure();
+plot(omega_s1);
+grid on;
+xlabel("Time(s)");
+ylabel("rad/sec");
+title("Έξοδος του συστήματος (ω)");
+legend("Σήμα Αναφοράς (r)","Εξοδος (ω)");
+
+
+
+%Προυπόθεση (2) - max 5% υπερύψωση για βηματική είσοδο
+max_omega = max(r)*1.05;
+min_omega = min(r)*0.95;
+
+figure();
+subplot(3,1,1);
+plot(omega_s1);
+grid on;
+hold on;
+yline(max_omega,"black","μέγιστη θετική υπερύψωση (5%)","LineStyle","--","LineWidth",2);
+yline(min_omega,"black","μέγιστη αρνητική υπερύψωση(5%)","LineStyle","--","LineWidth",2);
+title("Εξοδος (ω) του συστήματος - Προυπόθεση 2");
+ylabel("rad/sec");
+legend("Σήμα Αναφοράς","Έξοδος του συστήματος")
+
+%Προυπόθεση 4 - Χρόνος ανόδου <= 160ms
+%figure(2)
+subplot(3,1,2);
+plot(omega_s1); 
+grid on; 
+hold on;
+
+xlim([0 0.2]);              
+xline(0.16,'--',LineWidth=2);           
+
+% yline(150,'--',LineWidth=2);           
+title('Χρόνος Ανόδου - Προυπόθεση 4'); 
+xlabel('Time (s)'); 
+ylabel(' ω (rad/s)');
+legend('r(t)','ω','t=160 ms','Location','best');
+
+
+
+%Προυπόθεση 5 - Va(t)<=200V για κάθε t>0
+%figure(3);
+subplot(3,1,3);
+plot(Va_s1);
+grid on;
+ylabel("Va(V)")
+title("Va - Προυπόθεση 5")
+yline(200,'r',"200V",LineStyle="--",LineWidth=2)
+
+
 %% 
