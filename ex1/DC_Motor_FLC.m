@@ -1,4 +1,4 @@
-%% Σενάριο 1
+%% Δεδομένα
 clc;
 close all;
 
@@ -17,6 +17,22 @@ r_max = 150;
 normalization = 1/r_max;
 r = timeseries(r,t);
 
+Ke = Ke_initial;
+a = a_initial;
+Kd = Kd_initial;
+K = K_initial;
+%% Σεναριο 1a - finetuning
+Ke_ft = 1;
+a_ft =2;
+Kd_ft = a_ft*Ke_ft;
+K_ft = 60;
+
+Ke = Ke_ft;
+a = a_ft;
+Kd = Kd_ft;
+K = K_ft;
+
+%% Σενάριο 1a - Plots
 figure();
 plot(omega_s1);
 grid on;
@@ -51,12 +67,11 @@ hold on;
 
 xlim([0 0.2]);              
 xline(0.16,'--',LineWidth=2);           
-
-% yline(150,'--',LineWidth=2);           
+yline(r_max*0.9,'--',LineWidth=2);           
 title('Χρόνος Ανόδου - Προυπόθεση 4'); 
 xlabel('Time (s)'); 
 ylabel(' ω (rad/s)');
-legend('r(t)','ω','t=160 ms','Location','best');
+legend('r(t)','ω','90%Yss σε t=160 ms','Location','best');
 
 
 
@@ -68,6 +83,5 @@ grid on;
 ylabel("Va(V)")
 title("Va - Προυπόθεση 5")
 yline(200,'r',"200V",LineStyle="--",LineWidth=2)
-
 
 %% 
