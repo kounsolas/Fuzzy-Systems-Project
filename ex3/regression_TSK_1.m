@@ -104,7 +104,10 @@ for k = 1:4
 end
 sgtitle('Prediction Error (All Models');
 
-
+% %% Results Table
+% varnames={'Grid_No_Validation','Grid_Validation','Scatter_SC','Scatter_FCM'};
+% rownames={'Rsquared','RMSE'};
+% Perf=array2table(Perf,'VariableNames',varnames,'RowNames',rownames)
 
 
 
