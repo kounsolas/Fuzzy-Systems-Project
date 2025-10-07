@@ -1,0 +1,116 @@
+clc;
+close all;
+clearvars;
+
+data = load("airfoil_self_noise.dat");
+preproc = 1; % 1-> kanonikopoisi sto [0,1], 2->normalization me mu=0 kai var=1
+% trnData for training
+% valData for validation - avoid overtraining/overfitting
+% chkdata for performance ckecking of the final model
+[trnData,chkData,valData] = train_test_split(data,preproc);
+Performance = NaN(4,4);
+
+
+% define the performance evaluating functions
+RMSE = @(yhat,y) sqrt(mean((yhat - y).^2));
+NMSE =@(yhat,y) sum((y - yhat).^2)./sum((y - mean(y)).^2);
+NDEI = @(yhat,y) sqrt(NMSE(yhat,y));
+R2 = @(yhat,y) 1-sum((yhat-y).^2)/sum((y-mean(y)).^2);
+
+Xtr = trnData(:,1:end-1);   
+Ytr = trnData(:,end);
+Xval  = valData(:,1:end-1);   
+Yval  = valData(:,end); 
+Xchk = chkData(:,1:end-1);
+Ychk = chkData(:,end);
+
+% opt = genfisOptions('GridPartition','NumMember');
+% opt.NumMembershipFunctions         = 2;          % π.χ. 2 MFs ανά είσοδο
+% opt.InputMembershipFunctionType    = "gbellmf";  % 'gbellmf'
+% opt.OutputMembershipFunctionType   = "constant"; % zero-order Sugeno
+% options for the 4 models
+opt(1) = genfisOptions('GridPartition', 'NumMembershipFunctions', 2, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'constant');
+opt(2) = genfisOptions('GridPartition', 'NumMembershipFunctions', 3, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'constant');
+opt(3) = genfisOptions('GridPartition', 'NumMembershipFunctions', 2, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'linear');
+opt(4) = genfisOptions('GridPartition', 'NumMembershipFunctions', 3, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'linear');
+
+for i = 1:4
+    fis = genfis(Xtr,Ytr,opt(i));
+    % 100 = max epochs
+    % 0 = error goal (stop if RMSE ≤ 0)
+    % 0.01= initial step size (for gradient descent part)
+    % 0.9 = step size decrease rate (if error ↑, step *= 0.9)
+    % 1.1 = step size increase rate (if error ↓, step *= 1.1
+    figure('Name',"Input Membership Functions BEFORE TRAINING");
+    plotMFsNew(fis,size(trnData,2)-1);
+    hold on;
+    title("Input Membership Functions BEFORE TRAINING");
+    [trnFis,trnError,~,valFis,valError]=anfis(trnData,fis,[100 0 0.01 0.9 1.1],[],chkData);
+    TrnError(:,i) = trnError;
+    ValError(:,i) = valError;
+    % trnFis: the FIS at the end of training (after the last epoch run).
+    % trnError: vector of training RMSE per epoch.
+    % valFis: the FIS at the epoch with minimum validation error on chkData
+    % (often earlier than the final epoch—use this for deployment).
+    % valError: vector of validation RMSE per epoch (same length as trnError).
+    figure('Name',"Input Membership Functions AFTER TRAINING"); 
+    plotMFsNew(valFis,size(trnData,2)-1);
+    title("Input Membership Functions AFTER TRAINING");
+
+    Yhat=evalfis(valFis,Xval);
+    Ypred(:,i) = evalfis(valFis,Xchk);
+    Performance(i,:) = [RMSE(Yhat,Yval) NMSE(Yhat,Yval) NDEI(Yhat,Yval) R2(Yhat,Yval)];   
+end
+
+% === Ένα figure με 4 subplots ===
+figure('Name','Training Validation Error (All Models)');
+for k = 1:4
+    subplot(2,2,k);
+    hold on; 
+    grid on;
+    plot(TrnError(:,k), 'LineWidth', 2);
+    plot(ValError(:,k), 'LineWidth', 2);
+    
+    xlabel('Epoch'); 
+    ylabel('Error');
+    % Προαιρετικός τίτλος με info από τα options
+    nMF  = opt(k).NumMembershipFunctions;
+    outT = opt(k).OutputMembershipFunctionType;  % "constant" ή "linear"
+    title(sprintf('Model %d | %d MF | %s output', k, nMF, outT));
+    if k == 1
+        legend('Training Error','Validation Error','Location','best');
+    end
+    hold off;
+end
+sgtitle('Training - Validation Error (All Models');
+
+figure('Name','Prediction Error (All Models)');
+for k = 1:4
+    prediction_error = Ychk - Ypred(:,k);
+    subplot(2,2,k);
+    hold on; 
+    grid on;
+    plot(prediction_error, 'LineWidth', 2);
+    xlabel('index'); 
+    ylabel('Error');
+    % Προαιρετικός τίτλος με info από τα options
+    nMF  = opt(k).NumMembershipFunctions;
+    outT = opt(k).OutputMembershipFunctionType;  % "constant" ή "linear"
+    title(sprintf('Model %d | %d MF | %s output', k, nMF, outT));
+    hold off;
+
+    fprintf('           RMSE      NMSE      NDEI      R2\n');
+    fprintf('Model %d: %f %f %f %f\n', k, Performance(k,:));
+end
+sgtitle('Prediction Error (All Models');
+
+
+
+
+
+
+
+
+
+
+
