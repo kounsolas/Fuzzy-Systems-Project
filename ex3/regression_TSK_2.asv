@@ -17,7 +17,7 @@ Xchk = chkData(:,1:end-1);
 Ychk = chkData(:,end);
 
 num_features = [5 10 15 20]';
-radius = [0.2 0.35 0.5, 0.65]';
+radius = [0.3 0.4 0.5, 0.6]';
 num_of_folds = 5;
 c = cvpartition(size(trnData,1),"KFold",5);
 
@@ -82,9 +82,80 @@ title('Error Curve | Number of Features');
 figure('Name','Hyperparameters Scatter plot');
 scatter3(num_features,radius,parameters_val_error)
 
-%% 
-figure();
-scatter(fis_rules(:),parameters_val_error(:))
+%% Part 3 - Train the TSK model with the optimal hyperparameters
+clc;
+for i=1:size(parameters_val_error,1)
+    number_of_features = num_features(i);
+    for j=1:size(parameters_val_error,2)
+        r = radius(j);
+        error = parameters_val_error(i,j);
+        fprintf("# features: %d\t\tRadius: %.3f\t\tValidation Error: %.4f\n",number_of_features,r,error)
+    end
+end
+
+min_err = min(min(parameters_val_error));
+[best_row,best_col] = find(parameters_val_error == min_err);
+best_number_features = num_features(best_row);
+best_radius = radius(best_col);
+fprintf("\nOptimal # features: %d\nOptimal Radius: %.3f\n",best_number_features,best_radius);
+
+
+%feature selection only on fold_trData
+[ranked, ~] = relieff(Xtr, Ytr, 10);
+index_features_selected = ranked(1:best_number_features);
+cols = [index_features_selected size(trnData,2)]; %add the last column which is the target
+
+trnData_fs = trnData(:,cols);
+valData_fs = valData(:,cols);
+
+%fis with fold data
+options = genfisOptions('SubtractiveClustering','ClusterInfluenceRange',best_radius);
+fis = genfis(trnData_fs(:,1:end-1),trnData_fs(:,end),options);
+
+%train fis
+[trn_fis, trn_error,~, val_fis, val_error] = anfis(trnData_fs,fis,[10 0 0.01 0.9 1.1],[],valData_fs);
+
+%% Plot the Prediction vs Actual Values
+Ypred = evalfis(val_fis,Xchk(:,index_features_selected));  % Is this correct ?
+figure('Name','Predictions Vs Actual Values')
+stem(Ypred,'Marker','none')
+hold on;
+grid on;
+stem(Ychk,'Marker','none')
+title('Prediction vs Actual Values ');
+legend('Predictions','Actual Values',Location='best');
+
+%% Plot the Training vs Validation Error
+figure('Name','Training/Validation Error')
+plot(trn_error,LineWidth=2);
+grid on;
+hold on;
+plot(val_error,LineWidth=2);
+xlabel('Epochs');
+ylabel('Error');
+legend('Training Error','Validation Error',location='best');
+title('Training/Validation Error');
+
+%% Plot some fuzzy 
+figure('Name',"Input Membership Functions AFTER TRAINING");
+plotMFsNew(trn_fis,6);
+
+%% RMSE,NMSE,NDEI,R2
+RMSE = @(yhat,y) sqrt(mean((yhat - y).^2));
+rmse = RMSE(Ypred,Ychk);
+NMSE =@(yhat,y) sum((y - yhat).^2)./sum((y - mean(y)).^2);
+nmse = NMSE(Ypred,Ychk);
+NDEI = @(yhat,y) sqrt(NMSE(yhat,y));
+ndei = NDEI(Ypred,Ychk);
+R2 = @(yhat,y) 1-sum((yhat-y).^2)/sum((y-mean(y)).^2);
+r2 = R2(Ypred,Ychk);
+
+fprintf('RMSE: %.4f\nNMSE: %.4f\n,NDEI: %.4f\nR2: %.4f',rmse,nmse,ndei,r2)
+
+
+
+
+
 
 
 
