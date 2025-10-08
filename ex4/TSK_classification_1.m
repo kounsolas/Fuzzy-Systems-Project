@@ -1,0 +1,78 @@
+clc;
+clearvars;
+close all;
+
+data = load('haberman.data');
+X = data(:,1:end-1);
+Y = data(:,end);
+preproc = 1;
+fq_tol = 0.01;
+[trnData,valData,chkData]=train_test_split(data,preproc,fq_tol);
+
+Xtr = trnData(:,1:end-1);
+Ytr = trnData(:,end);
+Xval = valData(:,1:end-1);
+Yval = valData(:,end);
+Xchk = chkData(:,1:end-1);
+Ychk = chkData(:,end);
+
+%% class frequencies the same between each set
+fprintf("---------INITIAL DATA---------------\n")
+frequency = get_frequency(Y);
+fprintf('Class 1 frequency: %f\n',frequency(1));
+fprintf('Class 2 frequency: %f\n',frequency(2));
+fprintf("---------TRAINING DATA---------------\n")
+frequency = get_frequency(Ytr);
+fprintf('Class 1 frequency: %f\n',frequency(1));
+fprintf('Class 2 frequency: %f\n',frequency(2));
+fprintf("---------VALIDATION DATA---------------\n")
+frequency = get_frequency(Yval);
+fprintf('Class 1 frequency: %f\n',frequency(1));
+fprintf('Class 2 frequency: %f\n',frequency(2));
+fprintf("---------CHECKING DATA DATA---------------\n")
+frequency = get_frequency(Ychk);
+fprintf('Class 1 frequency: %f\n',frequency(1));
+fprintf('Class 2 frequency: %f\n',frequency(2));
+%% SC Class Indepentent
+radius_small = 0.3;
+options(1) = genfisOptions('SubtractiveClustering', 'ClusterInfluenceRange', radius_small);
+radius_big = 0.65;
+options(2) = genfisOptions('SubtractiveClustering', 'ClusterInfluenceRange', radius_big);
+
+for i=1:2
+    fis = genfis(Xtr,Ytr,options(i));
+    % Μετατροπή όλων των output MFs σε 'constant'
+    %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    nOutMF = numel(fis.Outputs(1).MembershipFunctions);
+    C = mean(Ytr);
+
+    for k = 1:nOutMF
+        fis.Outputs(1).MembershipFunctions(k).Type = "constant";
+        fis.Outputs(1).MembershipFunctions(k).Parameters = C;
+    end
+    %!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    [trn_fis,trn_error,~,val_fis,val_error] = anfis(trnData,fis,[200 0 0.005 0.7 1.05],[],valData);
+    
+    Ypred = evalfis(val_fis,Xchk);
+    Ypred = max(1, min(2, round(Ypred)));
+
+    text = sprintf('Fuzzy Sets After Training Model %d',i);
+    figure('Name',text);
+    plotMFsNew(trn_fis,size(Xtr,2));
+
+    text = sprintf('Training Error Vs Validation Error for Model %d',i);
+    figure('Name',text);
+    plot([trn_error val_error],LineWidth=2);
+    grid on;
+    xlabel('Epochs');
+    ylabel('Error');
+    title(text);
+    legend('Training Error','Validation Error',location='best');
+
+    %confusion matrix
+    [C,labels] = confusionmat(Ychk, Ypred);   % raw counts
+    OA(i) = sum(diag(C)) / sum(C(:));
+    % Producer's (Recall) and User's (Precision) per class:
+    % PA(i) = diag(C) ./ sum(C,2);     % per true class (rows)
+    % UA(i) = diag(C) ./ sum(C,1)';    % per predicted class (cols)
+end
