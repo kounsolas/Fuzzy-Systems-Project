@@ -19,9 +19,10 @@ Ychk = chkData(:,end);
 num_features = [5 10 15 20]';
 radius = [0.3 0.4 0.5, 0.6]';
 num_of_folds = 5;
-c = cvpartition(size(trnData,1),"KFold",5);
+c = cvpartition(size(trnData,1),"KFold",num_of_folds);
 
 parameters_val_error = NaN(size(num_features,1), size(radius,1));
+%fis_rules = NaN(size(num_features,1),size(radius,1));
 
 for i=1:size(num_features,1)
     %feature selection
@@ -32,6 +33,8 @@ for i=1:size(num_features,1)
         r_radius = radius(j);
         fprintf("\tRadius: %.2f\n",r_radius);
 
+        % fis_rules_fold = NaN(1,num_of_folds);
+        % fold_val_error = NaN(1,num_of_folds);
         for fold=1:num_of_folds
             fprintf("\t\tFold: %d\n",fold);
             % training and validation fold data
@@ -66,7 +69,7 @@ end
 
 %% Plots
 figure('Name','Error Curve | Fis Rules');
-scatter(fis_rules(:),parameters_val_error(:),'LineWidth',2);
+scatter(fis_rules,parameters_val_error,'LineWidth',2);
 grid on
 xlabel("Number of Fis Rules");
 ylabel("Error")
@@ -100,7 +103,7 @@ best_radius = radius(best_col);
 fprintf("\nOptimal # features: %d\nOptimal Radius: %.3f\n",best_number_features,best_radius);
 
 
-%feature selection only on fold_trData
+%feature selection 
 [ranked, ~] = relieff(Xtr, Ytr, 10);
 index_features_selected = ranked(1:best_number_features);
 cols = [index_features_selected size(trnData,2)]; %add the last column which is the target
@@ -138,7 +141,7 @@ title('Training/Validation Error');
 
 %% Plot some fuzzy 
 figure('Name',"Input Membership Functions AFTER TRAINING");
-plotMFsNew(trn_fis,6);
+plotMFsNew(trn_fis,6); %6 ??????????????????????????????????????????????????????????????
 
 %% RMSE,NMSE,NDEI,R2
 RMSE = @(yhat,y) sqrt(mean((yhat - y).^2));
