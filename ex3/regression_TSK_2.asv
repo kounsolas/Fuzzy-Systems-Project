@@ -150,11 +150,9 @@ xlabel('Epochs');
 ylabel('Error');
 legend('Training Error','Validation Error',location='best');
 title('Training/Validation Error');
-%% PLot some initial and final fuzzy
-figure('Name','Input Membership Functions BEFORE TRAINING');
+%% PLot some initial fuzzy
 plotMFsNew(fis,6)
-
-
+%% Plot some fuzzy 
 figure('Name',"Input Membership Functions AFTER TRAINING");
 plotMFsNew(trn_fis,6); %
 
@@ -168,7 +166,7 @@ ndei = NDEI(Ypred,Ychk);
 R2 = @(yhat,y) 1-sum((yhat-y).^2)/sum((y-mean(y)).^2);
 r2 = R2(Ypred,Ychk);
 
-fprintf('\nRMSE: %.4f\tNMSE: %.4f\tNDEI: %.4f\tR2: %.4f\n',rmse,nmse,ndei,r2);
+fprintf('\nRMSE: %.4f\nNMSE: %.4f\nNDEI: %.4f\nR2: %.4f\n',rmse,nmse,ndei,r2);
 
 
 

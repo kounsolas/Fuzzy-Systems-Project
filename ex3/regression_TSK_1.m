@@ -11,7 +11,7 @@ preproc = 1; % 1-> kanonikopoisi sto [0,1], 2->normalization me mu=0 kai var=1
 Performance = NaN(4,4);
 
 
-% define the performance evaluating functions
+%% define the performance evaluating functions
 RMSE = @(yhat,y) sqrt(mean((yhat - y).^2));
 NMSE =@(yhat,y) sum((y - yhat).^2)./sum((y - mean(y)).^2);
 NDEI = @(yhat,y) sqrt(NMSE(yhat,y));
@@ -34,6 +34,7 @@ opt(2) = genfisOptions('GridPartition', 'NumMembershipFunctions', 3, 'InputMembe
 opt(3) = genfisOptions('GridPartition', 'NumMembershipFunctions', 2, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'linear');
 opt(4) = genfisOptions('GridPartition', 'NumMembershipFunctions', 3, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'linear');
 
+%% Models Training
 for i = 1:4
     fis = genfis(Xtr,Ytr,opt(i));
     % 100 = max epochs
@@ -45,7 +46,7 @@ for i = 1:4
     plotMFsNew(fis,size(trnData,2)-1);
     hold on;
     title("Input Membership Functions BEFORE TRAINING");
-    [trnFis,trnError,~,valFis,valError]=anfis(trnData,fis,[100 0 0.01 0.9 1.1],[],chkData);
+    [trnFis,trnError,~,valFis,valError]=anfis(trnData,fis,[100 0 0.01 0.9 1.1],[],valData);
     TrnError(:,i) = trnError;
     ValError(:,i) = valError;
     % trnFis: the FIS at the end of training (after the last epoch run).
@@ -54,15 +55,15 @@ for i = 1:4
     % (often earlier than the final epoch—use this for deployment).
     % valError: vector of validation RMSE per epoch (same length as trnError).
     figure('Name',"Input Membership Functions AFTER TRAINING"); 
-    plotMFsNew(valFis,size(trnData,2)-1); %% NOMIZO THELEI TO TELIKO FIS DILADI TO trnFis !!!!!!!!!!!!!!!!!!!!!
+    plotMFsNew(valFis,size(trnData,2)-1); %%ως τελικό μοντέλο, η εκφώνηση λέει ότι επιλέγουμε το ValFis
     title("Input Membership Functions AFTER TRAINING");
 
-    Yhat=evalfis(valFis,Xval);  % USE XVAL OR XCHK ????????????????????????????????????????????????????????
-    Ypred(:,i) = evalfis(valFis,Xchk);
-    Performance(i,:) = [RMSE(Yhat,Yval) NMSE(Yhat,Yval) NDEI(Yhat,Yval) R2(Yhat,Yval)];  %!!!!!!!!!!!!!!!!!!!!
+    Yhat=evalfis(valFis,Xchk);  
+    Ypred(:,i) = Yhat;
+    Performance(i,:) = [RMSE(Yhat,Ychk) NMSE(Yhat,Ychk) NDEI(Yhat,Ychk) R2(Yhat,Ychk)];  
 end
 
-% === Ένα figure με 4 subplots ===
+%% 4 subplots για Training/validation error
 figure('Name','Training Validation Error (All Models)');
 for k = 1:4
     subplot(2,2,k);
@@ -84,6 +85,7 @@ for k = 1:4
 end
 sgtitle('Training - Validation Error (All Models');
 
+%% Prediction error
 figure('Name','Prediction Error (All Models)');
 for k = 1:4
     prediction_error = Ychk - Ypred(:,k);
@@ -104,10 +106,6 @@ for k = 1:4
 end
 sgtitle('Prediction Error (All Models');
 
-% %% Results Table
-% varnames={'Grid_No_Validation','Grid_Validation','Scatter_SC','Scatter_FCM'};
-% rownames={'Rsquared','RMSE'};
-% Perf=array2table(Perf,'VariableNames',varnames,'RowNames',rownames)
 
 
 
