@@ -79,7 +79,7 @@ for i=1:size(num_features,1)
             fis_rules_fold(fold) = numel(fis.Rules);
 
             %train fis
-            [trn_fis,trn_error,~,val_fis,val_error] = anfis(trData_fold_fs,fis,[20 0 0.01 0.9 1.1],[],valData_fold_fs);
+            [trn_fis,trn_error,~,val_fis,val_error] = anfis(trData_fold_fs,fis,[50 0 0.01 0.9 1.1],[0 0 0 0],valData_fold_fs);
 
             %evaluate the hyperparameters with the min mean error
             fold_val_error(fold) = mean(val_error);
