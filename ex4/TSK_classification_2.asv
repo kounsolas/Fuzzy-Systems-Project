@@ -159,19 +159,16 @@ fis  = genfis(trnData_fs(:,1:end-1),trnData_fs(:,end),options);
 %% Plot the Prediction vs Actual Values
 Ypred = evalfis(val_fis,Xchk(:,index_features_selected));
 Ypred = max(1, min(5, round(Ypred)));
-text = sprintf("Error = Predictions - Actual Values");
+text = sprintf("|Predictions - Actual Values|");
 figure('Name',text);
-abs_error = abs(Ypred-Ychk);
-error = Ypred-Ychk;
-stem(error,'Marker','none');
+abs_error = abs()
+stem(abs(Ypred-Ychk),'Marker','none');
 hold on;
-yline(mean(abs_error),LineWidth=2,Color='r');
-yline(mean(error),LineWidth=2,Color='g');
-xlabel('Sample index')
-ylabel('error')
+yline(mean(Ychk),LineWidth=2,Color='r');
+yline(mean(Ypred),LineWidth=2,Color='g');
 grid on;
 title(text);
-legend(text,'Mean of absolute error','Mean of error',Location='best');
+legend(text,'Mean of Actual Values','Mean of Predictions',Location='best');
 
 %% Plot the training vs validation error
 text = sprintf('Training Vs Validation Error');
