@@ -24,11 +24,6 @@ Yval  = valData(:,end);
 Xchk = chkData(:,1:end-1);
 Ychk = chkData(:,end);
 
-% opt = genfisOptions('GridPartition','NumMember');
-% opt.NumMembershipFunctions         = 2;          % π.χ. 2 MFs ανά είσοδο
-% opt.InputMembershipFunctionType    = "gbellmf";  % 'gbellmf'
-% opt.OutputMembershipFunctionType   = "constant"; % zero-order Sugeno
-% options for the 4 models
 opt(1) = genfisOptions('GridPartition', 'NumMembershipFunctions', 2, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'constant');
 opt(2) = genfisOptions('GridPartition', 'NumMembershipFunctions', 3, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'constant');
 opt(3) = genfisOptions('GridPartition', 'NumMembershipFunctions', 2, 'InputMembershipFunctionType', 'gbellmf', 'OutputMembershipFunctionType', 'linear');
