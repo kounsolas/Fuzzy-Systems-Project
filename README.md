@@ -12,3 +12,16 @@ MATLAB and Simulink code for the Fuzzy Systems course project at Aristotle Unive
 ## Requirements
 
 MATLAB with the Fuzzy Logic Toolbox, Statistics and Machine Learning Toolbox, and Simulink.
+
+## Run
+
+Open MATLAB, set an exercise folder as the current folder and run its script:
+
+| Folder | Script |
+|---|---|
+| `ex1` | `DC_Motor_FLC`, `DC_Motor_FLC_senario2`, `DC_Motor_FLC_senario3` |
+| `ex2` | `ex2` |
+| `ex3` | `regression_TSK_1`, `regression_TSK_2` |
+| `ex4` | `TSK_classification_1`, `TSK_classification_1_P2`, `TSK_classification_2` |
+
+The datasets are in the same folders as the scripts. Simulink build files (`slprj/`, `*.slxc`) are regenerated on first run.

@@ -1,0 +1,20 @@
+# MATLAB
+*.asv
+*.autosave
+*.m~
+*.mex*
+slprj/
+*.slxc
+sccprj/
+codegen/
+*_ert_rtw/
+*_grt_rtw/
+*_rsim_rtw/
+*_raccel_rtw/
+replay_pid*.log
+hs_err_pid*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
